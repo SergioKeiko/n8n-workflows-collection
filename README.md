@@ -37,6 +37,23 @@ Experienced marketing automation specialist and entrepreneur in the restaurant i
 - 📈 **Marketing Automation**: 7 workflows
 - 📧 **Email Marketing**: 4 workflows
 
+### 📖 Category Documentation
+
+Each category has detailed documentation with workflow descriptions:
+
+- 📁 [**Uncategorized README**](organized_workflows/uncategorized/README.md) - 980 workflows with detailed descriptions
+- 🤖 [**AI Automation README**](organized_workflows/ai-automation/README.md) - 749 AI & chatbot workflows  
+- 📊 [**Data Processing README**](organized_workflows/data-processing/README.md) - 187 data transformation workflows
+- 🎧 [**Customer Support README**](organized_workflows/customer-support/README.md) - 78 support & communication workflows
+- 🔗 [**Integrations API README**](organized_workflows/integrations-api/README.md) - 72 API integration workflows
+- 🎯 [**Lead Generation README**](organized_workflows/lead-generation/README.md) - 53 lead management workflows
+- 📋 [**Project Management README**](organized_workflows/project-management/README.md) - 42 task management workflows
+- 🛒 [**E-Commerce README**](organized_workflows/e-commerce/README.md) - 41 e-commerce automation workflows
+- 📱 [**Social Media README**](organized_workflows/social-media-automation/README.md) - 37 social media workflows
+- 💼 [**CRM Sales README**](organized_workflows/crm-sales/README.md) - 36 CRM automation workflows
+- 📉 [**Business Intelligence README**](organized_workflows/business-intelligence/README.md) - 30 analytics workflows
+- 📈 [**Marketing Automation README**](organized_workflows/marketing-automation/README.md) - 7 marketing workflows
+- 📧 [**Email Marketing README**](organized_workflows/email-marketing/README.md) - 4 email campaign workflows
 
 ## 📂 Implemented Improvements
 
