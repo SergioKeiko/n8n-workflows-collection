@@ -47,32 +47,6 @@ Experienced marketing automation specialist and entrepreneur in the restaurant i
 - **Duplicate Removal**: Verified unique content with no duplicate workflows
 - **Enhanced Documentation**: Complete README files for each category with detailed workflow information
 
-## 📥 Quick Start & Installation
-
-### Clone the Repository
-
-```bash
-# Clone the repository
-git clone https://github.com/SergioKeiko/n8n-workflows-collection.git
-
-# Navigate to the directory
-cd n8n-workflows-collection
-
-# Browse the organized workflows
-ls organized_workflows/
-
-## 🛠 Usage Instructions
-
-To import any workflow into your n8n instance, follow these steps:
-
-1. Browse the workflow directory below or use category links
-2. Click on the desired `.json` file link to download
-3. Open your n8n instance  
-4. Click the "Import" menu (☰ → Import workflow)
-5. Upload the downloaded JSON file
-6. Review and adjust credentials or webhook URLs as needed
-7. Save and run the workflow
-
 ## 🖥️ MCP Server (Model Context Protocol)
 
 The MCP server for this repository, so you can interact with this large knowledge base of documented n8n workflows, is:
