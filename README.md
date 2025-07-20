@@ -1,4 +1,4 @@
-# 🧠 Sergey's N8N Automation Workflows Collection
+# 🧠 Sergio N8N Automation Workflows Collection
 
 This repository is a **fork** of the original initiative by [@Zie619](https://github.com/Zie619/n8n-workflows), who gathered n8n workflows from various sources, such as:
 
