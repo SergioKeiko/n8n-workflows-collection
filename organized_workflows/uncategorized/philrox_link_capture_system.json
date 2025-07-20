@@ -1,0 +1,767 @@
+{
+  "name": "Link Capture System",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        640
+      ],
+      "id": "473974c0-d6b5-448f-be65-e0e07d3d7372",
+      "name": "Telegram Trigger",
+      "webhookId": "99ee4c7f-4de2-4d9a-a780-1c467b7d040d",
+      "credentials": {
+        "telegramApi": {
+          "id": "aEEmDIfizpluBu2v",
+          "name": "TG - Results by Magic Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('If url').item.json.message.chat.id }}",
+        "text": "=Title: {{ $json.fields.Name }}\n\nQuote: {{ $json.fields.Quote }}\n\nContent Idea: {{ $json.fields['Content Idea'] }}\n\nAutomation Idea: {{ $json.fields['Automation Idea'] }}\n\nSummary: {{ $json.fields.Summary }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "reply_to_message_id": "={{ $('If url').item.json.message.message_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2300,
+        620
+      ],
+      "id": "f010b026-8d56-4541-a12e-9e97f0d5f73c",
+      "name": "Answer on Message",
+      "webhookId": "333cabde-be04-481a-ba64-6265fecb1bcb",
+      "credentials": {
+        "telegramApi": {
+          "id": "aEEmDIfizpluBu2v",
+          "name": "TG - Results by Magic Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const msg = item.json.message;\n  const text = (msg.text || msg.caption || '').trim();\n\n  // URL (falls vorhanden)\n  const url = (text.match(/https?:\\/\\/\\S+/i) || [''])[0];\n\n  // Hashtags → Tags-Array  (#idea, #n8n …)\n  const tags = (text.match(/#(\\w[\\w-]*)/g) || []).map((t) =>\n    t.slice(1).toLowerCase(),\n  );\n\n  // Notes = Rest ohne URL & Hashtags\n  const notes = text\n    .replace(url, '')\n    .replace(/#\\w[\\w-]*/g, '')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\n  // Attachment-URL (nur Foto, easily erweiterbar)\n  const photo = msg.photo?.at(-1);\n  const attach = photo\n    ? `https://api.telegram.org/file/bot${$env.TG_TOKEN}/${photo.file_id}`\n    : '';\n\n  Object.assign(item.json, { url, tags, notes, attach });\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        360,
+        645
+      ],
+      "id": "bf8b162e-21f2-4dd4-99ae-bad03bd65a3d",
+      "name": "filter for tags, url, notes"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b0ad7121-ad62-4313-91d9-9ec848a5bcf8",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2a510fd3-1102-45e5-a38c-856d0ec79b79",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "reddit",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        580,
+        640
+      ],
+      "id": "91c253cb-6d24-410b-b0d1-d8022ec34e4a",
+      "name": "If url"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.exa.ai/contents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"urls\": [\n    \"{{ $json.url }}\"\n  ],\n  \"text\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        460
+      ],
+      "id": "714cff2b-7323-46f0-94d4-a0f49925d07e",
+      "name": "exaAI scrape content from link",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "DkKf1MlUtL0Wsi1E",
+          "name": "exaAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "o1",
+          "mode": "list",
+          "cachedResultName": "o1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1180,
+        660
+      ],
+      "id": "83101d26-8fbf-441e-92aa-46785747607f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "AZynAxNG099jyj7B",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"string\",\n  \"summary\": \"string\",\n  \"tags\": [\"string\"],\n  \"content_type\": \"string\",\n  \"quote\": \"string\",\n  \"content_idea\": \"string\",\n  \"automation_idea\": \"string\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        660
+      ],
+      "id": "0805571f-f22b-4456-b469-34e8087ff20a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        320
+      ],
+      "id": "80801e38-9993-4b90-bed4-47d4ba2c4351",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        570
+      ],
+      "id": "54e57236-d81d-4df8-ac1a-0bfa2eb09834",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1772,
+        445
+      ],
+      "id": "95fd6593-01cd-422b-8eeb-4af8a28b8c51",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        900
+      ],
+      "id": "5096c9db-81ea-49aa-bb2d-ee29fceb5daf",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1780,
+        820
+      ],
+      "id": "5c41daa4-d91c-474a-977e-ec3f6fb1b00b",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        760
+      ],
+      "id": "10523c72-26ea-4b77-9e26-cb6354e6f694",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "content": "# Input\n\n- Get link or notes from Telegram Bot\n- regex for tags, url, notes\n",
+        "height": 480,
+        "width": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        460
+      ],
+      "id": "e45e23fe-1d96-420f-9b53-c3ba90f93a14",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Processing Data\n- if it has a url, scrape it with exaAI (currently some issue)\n- let AI Agent write Title, Summary, content idea, automation idea, quote\n- merge data from Input and AI Agent together",
+        "height": 1100,
+        "width": 1340,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        100
+      ],
+      "id": "4b973607-694b-4191-89ed-586399abcb41",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# Save\n- Save data to Airtable\n- or just use google sheets",
+        "height": 640,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        340
+      ],
+      "id": "fd015df5-cc88-420e-9e1d-eefb2fd63bbc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# Notify\n- Send a Thumb up as answer on the input message, so you know that it worked",
+        "height": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        340
+      ],
+      "id": "0b5e38d5-a87c-4dbf-8ef5-ffa6143de218",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appZibYq6NNCMXIvD",
+          "mode": "list",
+          "cachedResultName": "Results by Magic",
+          "cachedResultUrl": "https://airtable.com/appZibYq6NNCMXIvD"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblnPIHHxymbcKTJc",
+          "mode": "list",
+          "cachedResultName": "Links",
+          "cachedResultUrl": "https://airtable.com/appZibYq6NNCMXIvD/tblnPIHHxymbcKTJc"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Notes": "={{ $json.data[0].notes }}",
+            "Url": "={{ $json.data[0].url }}",
+            "Tags": "={{ $json.data[0].output.tags.append( $json.data[0].tags).join(', ') }}",
+            "Name": "={{ $json.data[0].output.title }}",
+            "Content Type": "={{ $json.data[0].output.content_type }}",
+            "Quote": "={{ $json.data[0].output.quote }}",
+            "Content Idea": "={{ $json.data[0].output.content_idea }}",
+            "Automation Idea": "={{ $json.data[0].output.automation_idea }}",
+            "Summary": "={{ $json.data[0].output.summary }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Url",
+              "displayName": "Url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment",
+              "displayName": "Attachment",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Tags",
+              "displayName": "Tags",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Content Type",
+              "displayName": "Content Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Quote",
+              "displayName": "Quote",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Content Idea",
+              "displayName": "Content Idea",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Automation Idea",
+              "displayName": "Automation Idea",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1980,
+        620
+      ],
+      "id": "db7b7cae-7b70-4309-8a76-28d599acd74e",
+      "name": "Save data to Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "nx8bCP26DBRqsiLs",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Content:  {{ $json.results[0].text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Here is an article text.\n\nPlease answer:\n1. Title in 1 line\n2. Short summary in 2–3 sentences\n3. 3–5 matching tags (single words only)\n4. Content type (blog, news, tutorial...)\n5. Best quote in the text\n6. A content idea I could make of it\n7. What automation idea comes from the content?\n\nAnswer structured as JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1180,
+        320
+      ],
+      "id": "257ba4d8-676f-43f5-b0e1-cfc1c8c28682",
+      "name": "Generate Info with url"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Note:  {{ $json.notes }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Here's a note.\n\nPlease answer:\n1. Title in 1 line\n2. Short summary in 2–3 sentences\n3. 3–5 matching tags (single words only)\n4. Content type (blog, news, tutorial...)\n5. Best quote in the text\n6. A content idea I could make of it\n7. What automation idea comes from the content?\n\nAnswer structured as JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1200,
+        900
+      ],
+      "id": "36cfb0b9-c688-486e-9f4d-238ebe90ad53",
+      "name": "Generate Info without url"
+    },
+    {
+      "parameters": {
+        "content": "# Improvements\n- error solving and notifications, especially for reddit links, we could try another scraping method.\n",
+        "width": 800,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        140,
+        -120
+      ],
+      "id": "e1ec9717-521d-4f4d-bbd4-6b1a0b0e66d0",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "filter for tags, url, notes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter for tags, url, notes": {
+      "main": [
+        [
+          {
+            "node": "If url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If url": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "exaAI scrape content from link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Info without url",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exaAI scrape content from link": {
+      "main": [
+        [
+          {
+            "node": "Generate Info with url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Info with url",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Info without url",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate Info with url",
+            "type": "ai_outputParser",
+            "index": 0
+          },
+          {
+            "node": "Generate Info without url",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Save data to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Save data to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save data to Airtable": {
+      "main": [
+        [
+          {
+            "node": "Answer on Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Info with url": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Info without url": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3736171a-1a09-4015-8b32-e3bbe409b7ad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_API_TOKEN_HERE"
+  },
+  "id": "7dEfZgwuXMtvZ4xc",
+  "tags": [
+    {
+      "createdAt": "2025-04-14T11:05:17.062Z",
+      "updatedAt": "2025-04-14T11:05:17.062Z",
+      "id": "SRzFKUr6fVtmWq2d",
+      "name": "works"
+    },
+    {
+      "createdAt": "2025-04-15T19:44:22.741Z",
+      "updatedAt": "2025-04-15T19:44:22.741Z",
+      "id": "uwptq6flpj7qr09N",
+      "name": "share"
+    }
+  ]
+}

@@ -1,0 +1,243 @@
+{
+  "name": "Video to text w/ ElevenLabs",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6c2ae686-1487-44ae-bb3b-1a3c64072ee2",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        380,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/speech-to-text",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model_id",
+              "value": "scribe_v1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "99f2b5ea-32bf-4ca3-946f-e3bfc1ca3b90",
+      "name": "Create Transcript",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1040,
+        240
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "3ylJeVur9fG6IeIg",
+          "name": "ElevenLabs"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "'PARENT FOLDER ID' in parents and mimeType='video/mp4' and trashed=false",
+        "limit": 10,
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        600,
+        240
+      ],
+      "id": "0330576c-9146-40cc-8eb9-ca79ae7ef95d",
+      "name": "Find mp4 file IDs",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "WXa7ptRSm4cclZ8Q",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        820,
+        240
+      ],
+      "id": "5900bd56-a66b-4200-8e10-6dfc706d019f",
+      "name": "Download mp4",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "WXa7ptRSm4cclZ8Q",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "folderId": "YOUR_API_TOKEN_HERE",
+        "title": "=Transcript-{{ $('Download mp4').item.json.name.replaceAll('.mp4','') }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1260,
+        240
+      ],
+      "id": "a61eabc2-af16-43df-93e8-0dce03b0e124",
+      "name": "Create File",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "WkxEMoxYVubGbmAv",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('Create Transcript').item.json.text }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        240
+      ],
+      "id": "4df6f6ca-7ec2-4b88-8833-cc86152898b8",
+      "name": "Write File",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "WkxEMoxYVubGbmAv",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Credentials\n\nConnect google drive and create an ElevenLabs API-Key.\n\n## Node - Find mp4 file IDs\n\nIn the node “Find mp4 file IDs” insert the query string\n`'FOLDER ID' in parents and mimeType='video/mp4' and trashed=false`\n\nInsert the FOLDER ID of the parent folder where all video files are located.\n\nIt will then grab all files (limit 10) and will go on with the workflow.\n\n",
+        "height": 360,
+        "width": 620
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        360,
+        -180
+      ],
+      "typeVersion": 1,
+      "id": "56184d70-7df1-41c1-9d8c-3e3ef00ad284",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Find mp4 file IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find mp4 file IDs": {
+      "main": [
+        [
+          {
+            "node": "Download mp4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download mp4": {
+      "main": [
+        [
+          {
+            "node": "Create Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Transcript": {
+      "main": [
+        [
+          {
+            "node": "Create File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create File": {
+      "main": [
+        [
+          {
+            "node": "Write File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "519c6ae1-0bf3-465d-9d6c-0ac267822d3e",
+  "meta": {
+    "templateId": "3105",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_API_TOKEN_HERE"
+  },
+  "id": "zKRS69IbqjDF6S5w",
+  "tags": [
+    {
+      "createdAt": "2025-04-15T19:44:22.741Z",
+      "updatedAt": "2025-04-15T19:44:22.741Z",
+      "id": "uwptq6flpj7qr09N",
+      "name": "share"
+    }
+  ]
+}

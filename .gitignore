@@ -1,0 +1,34 @@
+# Временные файлы
+*.tmp
+*.temp
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Вспомогательные скрипты (не нужны в репозитории)
+generate_*.py
+
+# Исходные репозитории
+source_repo/
+*_repo/
+
+# Неорганизованные workflows (дублируют organized_workflows)
+workflows/
+
+# Старые файлы
+README-ENGLISH.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
