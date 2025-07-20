@@ -47,6 +47,20 @@ Experienced marketing automation specialist and entrepreneur in the restaurant i
 - **Duplicate Removal**: Verified unique content with no duplicate workflows
 - **Enhanced Documentation**: Complete README files for each category with detailed workflow information
 
+## 📥 Quick Start & Installation
+
+### Clone the Repository
+
+```bash
+# Clone the repository
+git clone https://github.com/SergioKeiko/n8n-workflows-collection.git
+
+# Navigate to the directory
+cd n8n-workflows-collection
+
+# Browse the organized workflows
+ls organized_workflows/
+
 ## 🛠 Usage Instructions
 
 To import any workflow into your n8n instance, follow these steps:
