@@ -1,4 +1,4 @@
-# 🧠 Sergey's N8N Automation Workflows Collection
+# 🧠 Sergio N8N Automation Workflows Collection
 
 This repository is a **fork** of the original initiative by [@Zie619](https://github.com/Zie619/n8n-workflows), who gathered n8n workflows from various sources, such as:
 
@@ -63,7 +63,7 @@ To import any workflow into your n8n instance, follow these steps:
 
 The MCP server for this repository, so you can interact with this large knowledge base of documented n8n workflows, is:
 
-`https://gitmcp.io/SergioKeiko/sergey-automation-workflows`
+`[https://gitmcp.io/SergioKeiko/sergey-automation-workflows](https://gitmcp.io/SergioKeiko/sergey-automation-workflows)`
 
 [Here you'll find instructions on how to use it in Cursor, Claude Desktop, Windsurf, VSCode, Cline, or Highlight AI](https://gitmcp.io/SergioKeiko/sergey-automation-workflows).
 
